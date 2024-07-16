@@ -18,32 +18,3 @@
 ```
 
 
-
-│   ├── arguments.py
-│   ├── custom_model.py
-│   ├── inference.py
-│   ├── inference_bm25.py
-│   ├── inference_es.py
-│   ├── korquad_finetuning.ipynb
-│   ├── requirements.txt
-│   ├── retrieval.py
-│   ├── retrieval_bm25.py
-│   ├── retrieval_es.py
-│   ├── train.py
-│   ├── train_cnn.py
-│   ├── trainer_qa.py
-│   ├── utils
-│   │   ├── datetime_helper.py
-│   │   ├── file_name_utils.py
-│   │   ├── hyper_parameters.py
-│   │   ├── logging_utils.py
-│   │   └── question 전처리.ipynb
-│   └── utils_qa.py
-── data
-├── eval.sh
-├── inference.sh
-├── run.sh
-└── train.sh├
-
-
-
