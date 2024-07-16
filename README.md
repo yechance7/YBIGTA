@@ -1,7 +1,9 @@
 # YBIGTA
 교육세션 과제 제출용
 
-📂 폴더 구조
+## 📂 폴더 구조
+
+```bash
 📦
 ├── 2-Python(1) (아직 없어도 됨)
 ├── 3-1-Dev-Environment (아직 없어도 됨)
@@ -13,7 +15,7 @@
 │   │   ├── logging_utils.py
 │   │   └──
 └──
-
+```
 
 
 
@@ -42,3 +44,6 @@
 ├── inference.sh
 ├── run.sh
 └── train.sh├
+
+
+
