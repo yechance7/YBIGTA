@@ -12,8 +12,7 @@
 │   ├── mylinux.png
 ├── 4-2-Git (아직 없어도 됨)
 
-│   │   ├── logging_utils.py
-│   │   └──
+│   │   ├──
 └──
 ```
 
