@@ -4,59 +4,49 @@ from typing import TypeVar, Generic, Optional, Iterable
 
 """
 TODO:
-- Trie.push ±¸ÇöÇÏ±â
-- (ÇÊ¿äÇÒ °æ¿ì) Trie¿¡ Ãß°¡ method ±¸ÇöÇÏ±â
+- Trie.push êµ¬í˜„í•˜ê¸°
+- (í•„ìš”í•  ê²½ìš°) Trieì— ì¶”ê°€ method êµ¬í˜„í•˜ê¸°
 """
 
-
+MOD = 1_000_000_007
 T = TypeVar("T")
-
 
 @dataclass
 class TrieNode(Generic[T]):
-    body: Optional[T] = None
-    children: list[int] = field(default_factory=lambda: [])
-    is_end: bool = False
-# body: ½ÇÁ¦°ª, children: ÀÚ½Ä ³ëµå, is_end: ¸¶Áö¸· °ªÀÎÁö¿©ºÎ
-# self´Â À§¿¡ 3°³·Î ±¸¼ºµÈ ÇÏ³ªÀÇ ¸®½ºÆ®
+    body: Optional[T] = None  # ë…¸ë“œì˜ ê°’ (ì˜ˆ: ë¬¸ì ë˜ëŠ” ìˆ«ì)
+    children: list[int] = field(default_factory=lambda: [])  # ìì‹ ë…¸ë“œë“¤ì˜ ì¸ë±ìŠ¤
+    is_end: bool = False  # ì´ ë…¸ë“œê°€ ë¬¸ìì—´ì˜ ëì¸ì§€ ì—¬ë¶€
+
 
 class Trie(list[TrieNode[T]]):
     def __init__(self) -> None:
         super().__init__()
-        self.append(TrieNode(body=None))
+        self.append(TrieNode(body=None))  # ë£¨íŠ¸ ë…¸ë“œ ì¶”ê°€
 
     def push(self, seq: Iterable[T]) -> None:
         """
-        seq: TÀÇ ¿­ (list[int]ÀÏ ¼öµµ ÀÖ°í strÀÏ ¼öµµ ÀÖ°í µîµî...)
-
-        action: trie¿¡ seqÀ» ÀúÀåÇÏ±â
-        """
-        current_node_index = 0  # ·çÆ® ³ëµåÀÇ ÀÎµ¦½º
-
-        # ÇØ´ç ´Ü¾î¸¦ ºÒ·¯¿Â´Ù (seq)
-        for element in seq:
-            # µğÆúµå´Â ¾ø´Ù
-            found_in_child = False
-            # ÀÚ½Ä³ëµå¸¦ ºÒ·¯¿Â´Ù
-            for child_index in self[current_node_index].children:
-                if self[child_index].body == element:
-                    # ¿ä¼Ò¸¦ °¡Áø ÀÚ½Ä ³ëµå°¡ ÀÖÀ¸¸é ±× ³ëµå·Î ÀÌµ¿
-                    current_node_index = child_index
-                    found_in_child = True
-                    break
-            
-            if not found_in_child:
-                # ¿ä¼Ò¸¦ °¡Áø ÀÚ½Ä ³ëµå°¡ ¾øÀ¸¸é »õ·Î¿î ³ëµå Ãß°¡
-                new_node = TrieNode(body=element)
-                self.append(new_node)
-                new_node_index = len(self) - 1
-                self[current_node_index].children.append(new_node_index)
-                current_node_index = new_node_index
+        seq: Tì˜ ì—´ (list[int]ì¼ ìˆ˜ë„ ìˆê³  strì¼ ìˆ˜ë„ ìˆê³  ë“±ë“±...)
         
-        # ½ÃÄö½ºÀÇ ³¡À» Ç¥½Ã
-        self[current_node_index].is_end = True
+        íŠ¸ë¼ì´ì— ì‹œí€€ìŠ¤ë¥¼ ì‚½ì…í•˜ëŠ” ë©”ì„œë“œ
+        """
+        current = 0
+        for char in seq:
+            if char not in self[current].children:
+                new_node = len(self)
+                self[current].children[char] = new_node
+                self.append(TrieNode(body=char))
+            current = self[current].children[char]
 
-
+    def is_prefix(self, seq: Iterable[T]) -> bool:
+        """
+        seqê°€ í˜„ì¬ íŠ¸ë¦¬ì˜ ì ‘ë‘ì‚¬ì¸ì§€ í™•ì¸í•©ë‹ˆë‹¤.
+        """
+        current = 0
+        for char in seq:
+            if char not in self[current].children:
+                return False
+            current = self[current].children[char]
+        return True
 
 
 import sys
@@ -64,63 +54,71 @@ import sys
 
 """
 TODO:
-- ÀÏ´Ü TrieºÎÅÍ ±¸ÇöÇÏ±â
-- count ±¸ÇöÇÏ±â
-- main ±¸ÇöÇÏ±â
+- ì¼ë‹¨ Trieë¶€í„° êµ¬í˜„í•˜ê¸°
+- count êµ¬í˜„í•˜ê¸°
+- main êµ¬í˜„í•˜ê¸°
 """
 
 
 def count(trie: Trie, query_seq: str) -> int:
     """
-    trie - ÀÌ¸§ ±×´ë·Î trie
-    query_seq - ´Ü¾î ("hello", "goodbye", "structures" µî)
+    trie - ì´ë¦„ ê·¸ëŒ€ë¡œ trie
+    query_seq - ë‹¨ì–´ ("hello", "goodbye", "structures" ë“±)
 
-    returns: query_seqÀÇ ´Ü¾î¸¦ ÀÔ·ÂÇÏ±â À§ÇØ ¹öÆ°À» ´­·¯¾ß ÇÏ´Â È½¼ö
+    returns: query_seqì˜ ë‹¨ì–´ë¥¼ ì…ë ¥í•˜ê¸° ìœ„í•´ ë²„íŠ¼ì„ ëˆŒëŸ¬ì•¼ í•˜ëŠ” íšŸìˆ˜
     """
     pointer = 0
     cnt = 0
 
     for element in query_seq:
+        # í˜„ì¬ ë…¸ë“œì—ì„œ ìì‹ì´ 2ê°œ ì´ìƒì´ê±°ë‚˜, í˜„ì¬ ë…¸ë“œ ìì²´ê°€ ë‹¨ì–´ì˜ ëì´ë¼ë©´ ë²„íŠ¼ì„ ëˆŒëŸ¬ì•¼ í•œë‹¤
         if len(trie[pointer].children) > 1 or trie[pointer].is_end:
             cnt += 1
 
-        new_index = None # ±¸ÇöÇÏ¼¼¿ä!
-        for child in trie[pointer].children:
-            if child.char == element:
-                new_index = child.index
+        # í˜„ì¬ ê¸€ìì— í•´ë‹¹í•˜ëŠ” ìì‹ ë…¸ë“œë¥¼ ì°¾ìŒ
+        new_index = None # êµ¬í˜„í•˜ì„¸ìš”!
+        for child_index in trie[pointer].children:
+            if trie[child_index].body == element:
+                new_index = child_index
                 break
         
-        if new_index is None:
-            raise ValueError(f"Character {element} not found in Trie")
-        
+        # ìƒˆ ë…¸ë“œë¡œ í¬ì¸í„° ì´ë™
         pointer = new_index
 
+    # ë§ˆì§€ë§‰ ê¸€ìì— ëŒ€í•´ ì²´í¬ (ë£¨íŠ¸ ë…¸ë“œê°€ ìì‹ì´ 1ê°œì¼ ë•Œ ìë™ìœ¼ë¡œ ì…ë ¥ëœ ê²½ìš° ì²´í¬)
     return cnt + int(len(trie[0].children) == 1)
 
 
 def main() -> None:
     input = sys.stdin.read
-    data = input().strip().split('\n')
+    data = input().strip().splitlines()
 
-    i = 0
-    while i < len(data):
-        n = int(data[i].strip())
-        i += 1
+    idx = 0
+    results = []
 
-        words = []
-        for _ in range(n):
-            words.append(data[i].strip())
-            i += 1
-        
-        trie = Trie()
+    while idx < len(data):
+        N = int(data[idx])  # ë‹¨ì–´ì˜ ê°œìˆ˜
+        idx += 1
+        words = data[index:index+N]
+        index += N
+
+        # Trieì— ë‹¨ì–´ë“¤ì„ ì‚½ì…
+        trie = Trie[str]()
         for word in words:
-            trie.insert(word)
+            trie.push(word)
         
-        total_presses = sum(trie.count_presses(word) for word in words)
-        avg_presses = total_presses / len(words)
-        
-        print(f"{avg_presses:.2f}")
 
+        # ê° ë‹¨ì–´ì— ëŒ€í•´ ë²„íŠ¼ ì…ë ¥ íšŸìˆ˜ ê³„ì‚°
+        total_presses = 0
+        for word in words:
+            total_presses += count(trie, word)
+        
+        # í‰ê·  ë²„íŠ¼ ì…ë ¥ íšŸìˆ˜ ê³„ì‚° ë° ì €ì¥
+        average_presses = total_presses / N
+        results.append(f"{average_presses:.2f}")
+
+    # ê²°ê³¼ ì¶œë ¥
+    sys.stdout.write("\n".join(results) + "\n")
 
 if __name__ == "__main__":
     main()

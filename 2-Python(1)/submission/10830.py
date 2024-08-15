@@ -4,90 +4,89 @@ import copy
 
 """
 TODO:
-- __setitem__ ±¸ÇöÇÏ±â
-- __pow__ ±¸ÇöÇÏ±â (__matmul__À» È°¿ëÇØº¾½Ã´Ù)
-- __repr__ ±¸ÇöÇÏ±â
+- __setitem__ êµ¬í˜„í•˜ê¸°
+- __pow__ êµ¬í˜„í•˜ê¸° (__matmul__ì„ í™œìš©í•´ë´…ì‹œë‹¤)
+- __repr__ êµ¬í˜„í•˜ê¸°
 """
 
 
 class Matrix:
-    # MOD: ¸ğµâ·¯ ¿¬»êÀÇ ±âÁØ°ª (1000)
     MOD = 1000
 
     def __init__(self, matrix: list[list[int]]) -> None:
         self.matrix = matrix
 
-    ## Á¤Àû ¸Ş¼­µå
-    # full: ÁÖ¾îÁø °ªÀ¸·Î Ã¤¿öÁø Çà·Ä»ı¼º
     @staticmethod
     def full(n: int, shape: tuple[int, int]) -> Matrix:
+        """ëª¨ë“  ì›ì†Œê°€ nì¸ í–‰ë ¬ì„ ìƒì„±"""
         return Matrix([[n] * shape[1] for _ in range(shape[0])])
-    
-    # zeros: ¸ğµç ¿ä¼Ò°¡ 0ÀÎ Çà·ÄÀ» »ı¼º
+
     @staticmethod
     def zeros(shape: tuple[int, int]) -> Matrix:
+        """ëª¨ë“  ì›ì†Œê°€ 0ì¸ í–‰ë ¬ì„ ìƒì„±"""
         return Matrix.full(0, shape)
 
-    # ones: ¸ğµç ¿ä¼Ò°¡ 1ÀÎ Çà·ÄÀ» »ı¼º
     @staticmethod
     def ones(shape: tuple[int, int]) -> Matrix:
+        """ëª¨ë“  ì›ì†Œê°€ 1ì¸ í–‰ë ¬ì„ ìƒì„±"""
         return Matrix.full(1, shape)
 
-    # eye: ´ÜÀ§ Çà·ÄÀ» »ı¼º
     @staticmethod
     def eye(n: int) -> Matrix:
+        """ë‹¨ìœ„ í–‰ë ¬ ìƒì„±"""
         matrix = Matrix.zeros((n, n))
         for i in range(n):
             matrix[i, i] = 1
         return matrix
 
-    ## ¼Ó¼º ¹× À¯Æ¿¸®Æ¼ ¸Ş¼­µå
-    # shape: Çà·ÄÀÇ Å©±â¸¦ ¹İÈ¯
     @property
     def shape(self) -> tuple[int, int]:
+        """í–‰ë ¬ì˜ í˜•íƒœë¥¼ ë°˜í™˜"""
         return (len(self.matrix), len(self.matrix[0]))
-    # clone: Çà·ÄÀÇ ±íÀº º¹»çº»À» ¸¸µì
+
     def clone(self) -> Matrix:
+        """í–‰ë ¬ì˜ ë³µì‚¬ë³¸ì„ ìƒì„±"""
         return Matrix(copy.deepcopy(self.matrix))
 
-    ## ÀÎµ¦½Ì ¸Ş¼­µå
-    # __getitem__: Æ¯Á¤ À§Ä¡ÀÇ ¿ä¼Ò¸¦ °¡Á®¿È
     def __getitem__(self, key: tuple[int, int]) -> int:
+        """í–‰ë ¬ì˜ íŠ¹ì • ì›ì†Œì— ì ‘ê·¼"""
         return self.matrix[key[0]][key[1]]
 
-    # __setitem__: Æ¯Á¤ À§Ä¡ÀÇ ¿ä¼Ò¸¦ ¼³Á¤ -> Çà·Ä°ªÀÌ 1000ÀÌÇÏ·Î À¯ÁöµÇ°Ô
     def __setitem__(self, key: tuple[int, int], value: int) -> None:
-        self.matrix[key[0]][key[1]] = value % self.MOD 
+        """í–‰ë ¬ì˜ íŠ¹ì • ì›ì†Œì— ê°’ì„ ì„¤ì •"""
+        self.matrix[key[0]][key[1]] = value % Matrix.MOD
 
-    # __matmul__: µÎ Çà·ÄÀÇ °ö¼À Ã³¸®    
     def __matmul__(self, matrix: Matrix) -> Matrix:
+        """í–‰ë ¬ì˜ ê³±ì…ˆì„ ìˆ˜í–‰"""
         x, m = self.shape
         m1, y = matrix.shape
-        assert m == m1
+        assert m == m1  # í–‰ë ¬ì˜ ê³±ì…ˆì´ ê°€ëŠ¥í•˜ë ¤ë©´ ë‘ í–‰ë ¬ì˜ ì—´ ìˆ˜ê°€ ê°™ì•„ì•¼ í•œë‹¤
 
         result = self.zeros((x, y))
 
         for i in range(x):
             for j in range(y):
                 for k in range(m):
-                    result[i, j] += self[i, k] * matrix[k, j]
+                    result[i, j] += self[i, k] * matrix[k, j] # ëª¨ë“ˆë¡œ ì—°ì‚°ì„ í†µí•´ ê²°ê³¼ë¥¼ 1000ìœ¼ë¡œ ë‚˜ëˆˆ ë‚˜ë¨¸ì§€ë¡œ ìœ ì§€
 
         return result
 
     def __pow__(self, n: int) -> Matrix:
-        if n == 0: # ´ÜÀ§Çà·Ä
-            return Matrix.eye(self.shape[0])
-        elif n == 1: # ÀÚ±âÀÚ½Å
-            return self
-        elif n % 2 == 0: # Â¦¼öÀÏ °æ¿ì, ¹İÀ¸·Î ºĞÇÒÇÏ¿© Àç±ÍÀûÀ¸·Î °è»ê
-            half_pow = self ** (n // 2)
-            return half_pow @ half_pow
-        else: # È¦¼öÀÏ °æ¿ì, n-1 °ÅµìÁ¦°öÇÑ °á°ú¿¡ ÀÚ±â ÀÚ½ÅÀ» °öÇÔ
-            return self @ (self ** (n - 1))
+        """í–‰ë ¬ì˜ nì œê³±ì„ ìˆ˜í–‰"""
+        result = Matrix.eye(self.shape[0])  # ë‹¨ìœ„ í–‰ë ¬ë¡œ ì´ˆê¸°í™”
+        base = self.clone()
+
+        while n > 0:
+            if n % 2 == 1:
+                result = result @ base
+            base = base @ base
+            n //= 2
+
+        return result
 
     def __repr__(self) -> str:
-        # °¢ ÇàÀ» ¹®ÀÚ¿­·Î º¯È¯ÇÑ ÈÄ ÁÙ¹Ù²Ş ¹®ÀÚ¸¦ »ç¿ëÇÏ¿© ¿¬°á
-        return '\n'.join([' '.join(map(str, row)) for row in self.matrix])
+        """í–‰ë ¬ì„ ë¬¸ìì—´ë¡œ ë³€í™˜í•˜ì—¬ ì¶œë ¥"""
+        return '\n'.join(' '.join(str(self[i, j]) for j in range(self.shape[1])) for i in range(self.shape[0]))
 
 
 from typing import Callable
@@ -95,21 +94,18 @@ import sys
 
 
 """
-¾Æ¹«°Íµµ ¼öÁ¤ÇÏÁö ¸¶¼¼¿ä!
+ì•„ë¬´ê²ƒë„ ìˆ˜ì •í•˜ì§€ ë§ˆì„¸ìš”!
 """
 
 
 def main() -> None:
     intify: Callable[[str], list[int]] = lambda l: [*map(int, l.split())]
 
-    #ÇÑÁÙ¾¿ ÀĞ¾î¿È
     lines: list[str] = sys.stdin.readlines()
 
-    # Çà·ÄÀÇ Å©±â(N)¿Í °ÅµìÁ¦°ö È½¼ö(B) °¡Á®¿À°í ³ª¸ÓÁö Çà·Ä °¡Á®¿È(matrix)
     N, B = intify(lines[0])
     matrix: list[list[int]] = [*map(intify, lines[1:])]
 
-    
     Matrix.MOD = 1000
     modmat = Matrix(matrix)
 

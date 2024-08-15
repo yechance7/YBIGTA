@@ -1,5 +1,3 @@
-import os
-
 PATH_1 = "./1-divide-and-conquer-multiplication"
 PATH_2 = "./2-trie"
 PATH_3 = "./3-segment-tree"
@@ -17,10 +15,8 @@ PATH_SUB = "./submission"
 
 
 def f(n: str) -> None:
-    os.makedirs(PATH_SUB, exist_ok=True)
-
-    num_code = "".join(filter(lambda x: "from lib import" not in x, open(f"{ROOT_PATH[n]}/{n}.py", encoding="utf-8").readlines()))
-    lib_code = open(f"{ROOT_PATH[n]}/lib.py", encoding="utf-8").read()
+    num_code = "".join(filter(lambda x: "from lib import" not in x, open(f"{ROOT_PATH[n]}/{n}.py").readlines()))
+    lib_code = open(f"{ROOT_PATH[n]}/lib.py").read()
     code = lib_code + "\n\n\n" + num_code
 
     open(f"{PATH_SUB}/{n}.py", 'w').write(code)

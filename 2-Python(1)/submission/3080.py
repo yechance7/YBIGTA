@@ -4,59 +4,49 @@ from typing import TypeVar, Generic, Optional, Iterable
 
 """
 TODO:
-- Trie.push ±¸ÇöÇÏ±â
-- (ÇÊ¿äÇÒ °æ¿ì) Trie¿¡ Ãß°¡ method ±¸ÇöÇÏ±â
+- Trie.push êµ¬í˜„í•˜ê¸°
+- (í•„ìš”í•  ê²½ìš°) Trieì— ì¶”ê°€ method êµ¬í˜„í•˜ê¸°
 """
 
-
+MOD = 1_000_000_007
 T = TypeVar("T")
-
 
 @dataclass
 class TrieNode(Generic[T]):
-    body: Optional[T] = None
-    children: list[int] = field(default_factory=lambda: [])
-    is_end: bool = False
-# body: ½ÇÁ¦°ª, children: ÀÚ½Ä ³ëµå, is_end: ¸¶Áö¸· °ªÀÎÁö¿©ºÎ
-# self´Â À§¿¡ 3°³·Î ±¸¼ºµÈ ÇÏ³ªÀÇ ¸®½ºÆ®
+    body: Optional[T] = None  # ë…¸ë“œì˜ ê°’ (ì˜ˆ: ë¬¸ì ë˜ëŠ” ìˆ«ì)
+    children: list[int] = field(default_factory=lambda: [])  # ìì‹ ë…¸ë“œë“¤ì˜ ì¸ë±ìŠ¤
+    is_end: bool = False  # ì´ ë…¸ë“œê°€ ë¬¸ìì—´ì˜ ëì¸ì§€ ì—¬ë¶€
+
 
 class Trie(list[TrieNode[T]]):
     def __init__(self) -> None:
         super().__init__()
-        self.append(TrieNode(body=None))
+        self.append(TrieNode(body=None))  # ë£¨íŠ¸ ë…¸ë“œ ì¶”ê°€
 
     def push(self, seq: Iterable[T]) -> None:
         """
-        seq: TÀÇ ¿­ (list[int]ÀÏ ¼öµµ ÀÖ°í strÀÏ ¼öµµ ÀÖ°í µîµî...)
-
-        action: trie¿¡ seqÀ» ÀúÀåÇÏ±â
-        """
-        current_node_index = 0  # ·çÆ® ³ëµåÀÇ ÀÎµ¦½º
-
-        # ÇØ´ç ´Ü¾î¸¦ ºÒ·¯¿Â´Ù (seq)
-        for element in seq:
-            # µğÆúµå´Â ¾ø´Ù
-            found_in_child = False
-            # ÀÚ½Ä³ëµå¸¦ ºÒ·¯¿Â´Ù
-            for child_index in self[current_node_index].children:
-                if self[child_index].body == element:
-                    # ¿ä¼Ò¸¦ °¡Áø ÀÚ½Ä ³ëµå°¡ ÀÖÀ¸¸é ±× ³ëµå·Î ÀÌµ¿
-                    current_node_index = child_index
-                    found_in_child = True
-                    break
-            
-            if not found_in_child:
-                # ¿ä¼Ò¸¦ °¡Áø ÀÚ½Ä ³ëµå°¡ ¾øÀ¸¸é »õ·Î¿î ³ëµå Ãß°¡
-                new_node = TrieNode(body=element)
-                self.append(new_node)
-                new_node_index = len(self) - 1
-                self[current_node_index].children.append(new_node_index)
-                current_node_index = new_node_index
+        seq: Tì˜ ì—´ (list[int]ì¼ ìˆ˜ë„ ìˆê³  strì¼ ìˆ˜ë„ ìˆê³  ë“±ë“±...)
         
-        # ½ÃÄö½ºÀÇ ³¡À» Ç¥½Ã
-        self[current_node_index].is_end = True
+        íŠ¸ë¼ì´ì— ì‹œí€€ìŠ¤ë¥¼ ì‚½ì…í•˜ëŠ” ë©”ì„œë“œ
+        """
+        current = 0
+        for char in seq:
+            if char not in self[current].children:
+                new_node = len(self)
+                self[current].children[char] = new_node
+                self.append(TrieNode(body=char))
+            current = self[current].children[char]
 
-
+    def is_prefix(self, seq: Iterable[T]) -> bool:
+        """
+        seqê°€ í˜„ì¬ íŠ¸ë¦¬ì˜ ì ‘ë‘ì‚¬ì¸ì§€ í™•ì¸í•©ë‹ˆë‹¤.
+        """
+        current = 0
+        for char in seq:
+            if char not in self[current].children:
+                return False
+            current = self[current].children[char]
+        return True
 
 
 import sys
@@ -64,30 +54,44 @@ import sys
 
 """
 TODO:
-- ÀÏ´Ü TrieºÎÅÍ ±¸ÇöÇÏ±â
-- main ±¸ÇöÇÏ±â
+- ì¼ë‹¨ Trieë¶€í„° êµ¬í˜„í•˜ê¸°
+- main êµ¬í˜„í•˜ê¸°
 
-ÈùÆ®: ÇÑ ±ÛÀÚÂ¥¸® ÀÚ·á¿¡µµ ±×³É strÀ» ¾²±â¿¡´Â ¸Ş¸ğ¸®°¡ ¾Æ±õ´Ù...
+íŒíŠ¸: í•œ ê¸€ìì§œë¦¬ ìë£Œì—ë„ ê·¸ëƒ¥ strì„ ì“°ê¸°ì—ëŠ” ë©”ëª¨ë¦¬ê°€ ì•„ê¹ë‹¤...
 """
 
 
+MOD = 1_000_000_007
+
 def main() -> None:
-    trie = Trie()
-    input = sys.stdin.read().split()
+    input = sys.stdin.read
+    data = input().split()
 
-    for word in input:
-        trie.push(word)
-
-    # ÀÚ½ÄÀÇ °¹¼ö¸¦ ¸ğµÎ °öÇÏ´Â ¹æ¹ıÀ¸·Î Ç®¸é µÈ´Ù. 0Àº Á¦¿ÜÇÑ´Ù.
-    MOD = 1_000_000_007
-    product = 1
-    for node in trie:
-        num_children = len(node.children)
-        if num_children > 0:
-            product = (product * num_children) % MOD
-
-    print(product)
+    N = int(data[0])
+    names = data[1:]
     
+    # Trie ìƒì„±
+    trie = Trie()
+    for name in names:
+        trie.push(name)
+    
+    # ì‚¬ì „ ìˆœìœ¼ë¡œ ì •ë ¬
+    names.sort()
+    
+    # DP ë°°ì—´ ì´ˆê¸°í™”
+    dp = [0] * N
+    dp[0] = 1
+    
+    # DP ê³„ì‚°
+    for i in range(1, N):
+        dp[i] = 1
+        for j in range(i):
+            if trie.is_prefix(names[j]):
+                dp[i] = (dp[i] + dp[j]) % MOD
+    
+    # ê²°ê³¼ ì¶œë ¥
+    result = sum(dp) % MOD
+    print(result)
 
 
 if __name__ == "__main__":
