@@ -37,7 +37,7 @@ class Pair(tuple[int, int]):
         return Pair(w, 0)
 
     @staticmethod
-    def f_merge(a: Pair, b: Pair) -> 'Pair':
+    def f_merge(a: 'Pair', b: 'Pair') -> 'Pair':
         """
         두 Pair를 하나의 Pair로 합치는 연산
         이게 왜 필요할까...?
@@ -51,8 +51,9 @@ class Pair(tuple[int, int]):
 
 
 def main() -> None:
-    input = sys.stdin.read
-    data = input().split()
+    input = sys.stdin.read().strip()
+
+    data = input.split()
     
     index = 0
     
@@ -68,33 +69,34 @@ def main() -> None:
     M = int(data[index])
     index += 1
     
-    # 쿼리 읽기
-    queries = data[index:index + 3 * M]
-    
+
     # SegmentTree를 초기화
-    seg_tree = SegmentTree([Pair(x, 0) for x in A], 
-                           operation=Pair.f_merge, 
-                           default=Pair.default())
+    tree: SegmentTree[Pair, int] = SegmentTree(N, Pair.f_merge, Pair.default())
+
+    for i in range(N):
+        tree.update_17408(i, Pair.f_conv(A[i]))
     
     results = []
     
     # 쿼리 처리
     for i in range(M):
-        q_type = int(queries[3 * i])
+        q_type = int(data[index])
         if q_type == 1:
             # 1 i v: Ai를 v로 바꾼다.
-            i = int(queries[3 * i + 1]) - 1
-            v = int(queries[3 * i + 2])
-            seg_tree.update(i, Pair.f_conv(v))
+            i = int(data[index+1]) - 1
+            v = int(data[index+2])
+            tree.update_17408(i, Pair.f_conv(v))
+            index += 3
         elif q_type == 2:
-            # 2 l r: l ≤ i < j ≤ r을 만족하는 모든 Ai + Aj 중에서 최댓값을 출력한다.
-            l = int(queries[3 * i + 1]) - 1
-            r = int(queries[3 * i + 2]) - 1
-            result = seg_tree.query(l, r).sum()
+            # 2 left right: left ≤ i < j ≤ right 만족하는 모든 Ai + Aj 중에서 최댓값을 출력한다.
+            left = int(data[index+1]) - 1
+            right = int(data[index+2])
+            result = str(tree.query(left, right).sum())
             results.append(result)
+            index += 3
     
     # 결과 출력
-    sys.stdout.write('\n'.join(map(str, results)) + '\n')
+    print("\n".join(results))
 
 
 if __name__ == "__main__":

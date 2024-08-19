@@ -8,7 +8,6 @@ TODO:
 - (필요할 경우) Trie에 추가 method 구현하기
 """
 
-MOD = 1_000_000_007
 T = TypeVar("T")
 
 @dataclass
@@ -19,6 +18,8 @@ class TrieNode(Generic[T]):
 
 
 class Trie(list[TrieNode[T]]):
+    MOD = 1000000007
+
     def __init__(self) -> None:
         super().__init__()
         self.append(TrieNode(body=None))  # 루트 노드 추가
@@ -31,22 +32,50 @@ class Trie(list[TrieNode[T]]):
         """
         current = 0
         for char in seq:
-            if char not in self[current].children:
-                new_node = len(self)
-                self[current].children[char] = new_node
-                self.append(TrieNode(body=char))
-            current = self[current].children[char]
+            found = False
+            for child in self[current].children:
+                if self[child].body == char:
+                    current = child
+                    found = True
+                    break
+            if not found:
+                new_node = TrieNode(body=char)
+                self.append(new_node)
+                self[current].children.append(len(self) - 1)
+                current = len(self) - 1
+        self[current].is_end = True
 
-    def is_prefix(self, seq: Iterable[T]) -> bool:
-        """
-        seq가 현재 트리의 접두사인지 확인합니다.
-        """
+    def count_orderings(self, node_index: int = 0) -> int:
+        node = self[node_index]
+        if not node.children:
+            return 1
+
+        num_children = len(node.children)
+        subtree_orderings = 1
+
+        for child_idx in node.children:
+            subtree_orderings *= self.count_orderings(child_idx)
+            subtree_orderings %= self.MOD
+
+        return (self.factorial(num_children) * subtree_orderings) % self.MOD
+
+    def factorial(self, n: int) -> int:
+        result = 1
+        for i in range(2, n + 1):
+            result *= i
+        return result
+    
+    def contains(self, seq: Iterable[T]) -> int:
+        count = 0
         current = 0
-        for char in seq:
-            if char not in self[current].children:
-                return False
-            current = self[current].children[char]
-        return True
+        for c in seq:
+            for child in self[current].children:
+                if self[child].body == c:
+                    current = child
+                    break
+            if len(self[current].children) > 1 or self[current].is_end:
+                count += 1
+        return count
 
 
 import sys

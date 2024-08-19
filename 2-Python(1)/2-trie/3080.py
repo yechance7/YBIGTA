@@ -11,9 +11,9 @@ TODO:
 """
 
 
-MOD = 1_000_000_007
-
 def main() -> None:
+    MOD = 1_000_000_007
+    
     input = sys.stdin.read
     data = input().split()
 

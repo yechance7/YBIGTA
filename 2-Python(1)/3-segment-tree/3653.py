@@ -26,30 +26,40 @@ def main() -> None:
         movies_to_watch = list(map(int, data[index:index + m]))
         index += m
         
-        # DVD의 초기 상태를 설정 (1부터 n까지의 DVD를 스택처럼 관리)
-        dvd_count = [1] * n
-        segment_tree = SegmentTree(dvd_count, 
-                                   operation=lambda x, y: x + y, 
-                                   default=0)
         
+        # DVD의 초기 상태를 설정 (1부터 n까지의 DVD를 스택처럼 관리)
+        total_size = n + m
+
+        segment_tree: SegmentTree = SegmentTree(total_size + 1, 
+                                            lambda a, b: a + b, 0)
+        place = [0] * (n + 1)
+
         # DVD의 번호를 인덱스와 연결하여 관리
-        dvd_position = list(range(n))
+        for i in range(1, n + 1):
+            place[i] = m + i
+            segment_tree.update(place[i], 1)
+
+        current_top = m
+        result = []
+
         
         for movie in movies_to_watch:
-            movie_index = movie - 1  # 0-based index로 변환
+            movie_index = place[movie]  # 0-based index로 변환
             
             # 꺼낼 때, 영화의 위에 몇 개의 DVD가 있는지 쿼리
-            num_above = segment_tree.query(0, movie_index)
-            results.append(num_above)
+            num_above = segment_tree.query(1, movie_index)
+            result.append(str(num_above))
             
             # 꺼낸 DVD를 가장 위로 이동
             # 현재 DVD의 개수를 감소시키고, 제일 위로 이동
-            if movie_index > 0:
-                segment_tree.update(movie_index, 0)  # 현재 DVD의 개수 0으로 설정
-                segment_tree.update(movie_index - 1, segment_tree.query(movie_index - 1, movie_index - 1) + 1)
-            segment_tree.update(0, 1)  # 맨 위로 이동
+            segment_tree.update(movie_index, -1)  # 현재 DVD의 개수 0으로 설정
+            current_top -= 1
+            segment_tree.update(current_top, 1)
+            place[movie] = current_top
+        
+        results.append(" ".join(result))
 
-    sys.stdout.write('\n'.join(map(str, results)) + '\n')
+    print("\n".join(results))
 
 if __name__ == "__main__":
     main()

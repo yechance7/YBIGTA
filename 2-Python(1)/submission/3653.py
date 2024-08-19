@@ -20,7 +20,7 @@ class SegmentTree(Generic[T, U]):
     예를 들어, 구간 합, 최소값, 최대값 등을 계산할 수 있습니다.
     """
 
-    def __init__(self, data: list[T], func: Callable[[U, U], U], default: U):
+    def __init__(self, n: int, func: Callable[[T,T], T], T = TypeVar("T", bound=int)):
         """
         세그먼트 트리의 초기화 메서드입니다.
 
@@ -28,20 +28,13 @@ class SegmentTree(Generic[T, U]):
         :param func: 구간에 대해 계산할 함수입니다. 예: 합계, 최소값, 최대값 등.
         :param default: 기본 값으로, 트리의 리프 노드에 해당하는 값이 없습니다.
         """
-        self.n = len(data)  # 입력 데이터의 크기
+        self.n = n
         self.func = func  # 트리의 각 노드에서 사용할 함수
-        self.default = default  # 트리의 기본 값
-        self.tree = [default] * (2 * self.n)  # 세그먼트 트리 배열 초기화
+        self.default = T  # 트리의 기본 값
+        self.tree = [T] * (2 * n)  # 세그먼트 트리 배열 초기화
 
-        # 입력 데이터를 세그먼트 트리의 리프 노드에 채웁니다.
-        for i in range(self.n):
-            self.tree[self.n + i] = data[i]
 
-        # 리프 노드를 바탕으로 내부 노드를 계산합니다.
-        for i in range(self.n - 1, 0, -1):
-            self.tree[i] = self.func(self.tree[2 * i], self.tree[2 * i + 1])
-
-    def update(self, index: int, value: T) -> None:
+    def update(self, index: int, value: T):
         """
         특정 인덱스의 값을 업데이트하고 세그먼트 트리를 갱신합니다.
 
@@ -49,16 +42,25 @@ class SegmentTree(Generic[T, U]):
         :param value: 새롭게 설정할 값.
         """
         # 리프 노드에서 값을 업데이트합니다.
-        pos = self.n + index
-        self.tree[pos] = value
+        index += self.n
+        self.tree[index] += value
 
-        # 트리의 상위 노드들을 업데이트합니다.
-        pos //= 2
-        while pos > 0:
-            self.tree[pos] = self.func(self.tree[2 * pos], self.tree[2 * pos + 1])
-            pos //= 2
-
-    def query(self, left: int, right: int) -> U:
+        # 트리의 상위 노드들을 업데이트합니다
+        while index > 1:
+            index //= 2
+            self.tree[index] = self.func(self.tree[2 * index], self.tree[2 * index + 1])
+    
+    def find_kth(self, k: int) -> int:
+        index = 1
+        while index < self.n:
+            if self.tree[index * 2] >= k:
+                index = index * 2
+            else:
+                k -= self.tree[index * 2]
+                index = index * 2 + 1
+        return index - self.n
+    
+    def query(self, left: int, right: int) -> T:
         """
         주어진 범위 [left, right) 내의 구간 값을 계산합니다.
 
@@ -87,6 +89,23 @@ class SegmentTree(Generic[T, U]):
             right //= 2
 
         return result
+    
+    def update_17408(self, index: int, value: T):
+        """
+        특정 인덱스의 값을 업데이트하고 세그먼트 트리를 갱신합니다.
+
+        :param index: 업데이트할 데이터의 인덱스 (0-based index).
+        :param value: 새롭게 설정할 값.
+        """
+        # 리프 노드에서 값을 업데이트합니다.
+        index += self.n
+        self.tree[index] = value
+
+        # 트리의 상위 노드들을 업데이트합니다
+        while index > 1:
+            index //= 2
+            self.tree[index] = self.func(self.tree[2 * index], self.tree[2 * index + 1])
+    
 
 
 
@@ -117,30 +136,40 @@ def main() -> None:
         movies_to_watch = list(map(int, data[index:index + m]))
         index += m
         
-        # DVD의 초기 상태를 설정 (1부터 n까지의 DVD를 스택처럼 관리)
-        dvd_count = [1] * n
-        segment_tree = SegmentTree(dvd_count, 
-                                   operation=lambda x, y: x + y, 
-                                   default=0)
         
+        # DVD의 초기 상태를 설정 (1부터 n까지의 DVD를 스택처럼 관리)
+        total_size = n + m
+
+        segment_tree: SegmentTree = SegmentTree(total_size + 1, 
+                                            lambda a, b: a + b, 0)
+        place = [0] * (n + 1)
+
         # DVD의 번호를 인덱스와 연결하여 관리
-        dvd_position = list(range(n))
+        for i in range(1, n + 1):
+            place[i] = m + i
+            segment_tree.update(place[i], 1)
+
+        current_top = m
+        result = []
+
         
         for movie in movies_to_watch:
-            movie_index = movie - 1  # 0-based index로 변환
+            movie_index = place[movie]  # 0-based index로 변환
             
             # 꺼낼 때, 영화의 위에 몇 개의 DVD가 있는지 쿼리
-            num_above = segment_tree.query(0, movie_index)
-            results.append(num_above)
+            num_above = segment_tree.query(1, movie_index)
+            result.append(str(num_above))
             
             # 꺼낸 DVD를 가장 위로 이동
             # 현재 DVD의 개수를 감소시키고, 제일 위로 이동
-            if movie_index > 0:
-                segment_tree.update(movie_index, 0)  # 현재 DVD의 개수 0으로 설정
-                segment_tree.update(movie_index - 1, segment_tree.query(movie_index - 1, movie_index - 1) + 1)
-            segment_tree.update(0, 1)  # 맨 위로 이동
+            segment_tree.update(movie_index, -1)  # 현재 DVD의 개수 0으로 설정
+            current_top -= 1
+            segment_tree.update(current_top, 1)
+            place[movie] = current_top
+        
+        results.append(" ".join(result))
 
-    sys.stdout.write('\n'.join(map(str, results)) + '\n')
+    print("\n".join(results))
 
 if __name__ == "__main__":
     main()
